@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// import SeasonDisplay from './SeasonDisplay';
+import SeasonDisplay from './SeasonDisplay';
+import Spinner from './Spinner';
 
 if (module.hot) {
   module.hot.accept();
@@ -8,31 +9,40 @@ if (module.hot) {
 
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
+  state = {lat: null, errorMessage: ''}
 
-    this.state = {
-      lat: null,
-      errorMessage: ''
-    }
-
+  componentDidMount() {
     window.navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.setState({lat: position.coords.latitude});
-      },
-      (error) => {
-        this.setState({errorMessage: error.message});
-      }
-    );
+      (position) => this.setState({lat: position.coords.latitude}),
+      (error) => this.setState({errorMessage: error.message})
+    );  
   }
-  render() {
+
+  componentDidUpdate() {
+    window.navigator.geolocation.getCurrentPosition(
+      (position) => this.setState({lat: position.coords.latitude}),
+      (error) => this.setState({errorMessage: error.message})
+    );   
+  }
+
+  renderContent() {
     if (this.state.errorMessage && !this.state.lat) {
       return <div>Error: {this.state.errorMessage}</div>
-    } else if (!this.state.errorMessage && this.state.lat) {
-      return <div>Latitude: {this.state.lat}</div>
-    } else {
-      return <div>Loading</div>
+    } 
+    if (!this.state.errorMessage && this.state.lat) {
+      return <SeasonDisplay lat={this.state.lat} />
     }
+    
+    if (!this.state.errorMessage && !this.state.lat) {
+      return <Spinner message='Waiting for location'/>
+    }
+  }
+  render() {
+    return (
+      <div>
+        {this.renderContent()}
+      </div>
+    )
   }
 }
 
